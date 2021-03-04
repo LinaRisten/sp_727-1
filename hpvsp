@@ -1,0 +1,111 @@
+#!/bin/sh
+echo "Author: Polina Khristenko"
+echo ""
+echo "Admin program"
+echo "This script is only run by root"
+echo "May prompt for username and some actions:"                                                         
+echo " - set password expiretion date (number of days, after which the password will need to be changed)"
+echo " - change user's shell (/bin/sh or /bin/bash or /sbin/nologin)"
+echo " - change user's home directory (path to directory)"
+
+set -e
+
+pass_exp_day(){
+    echo -n "Specify the number of days by which the password for the specified user will expire: "
+    read exp_days
+    chage -M $exp_days $username
+    echo "Done!"
+}
+
+user_shell(){
+    echo "Select the shell for the specified user: "
+    echo "1. /bin/sh"
+    echo "2. /bin/bash"
+    echo "3. /sbin/nologin"
+    read new_shell
+
+    case $new_shell in
+        1)
+            chsh -s /bin/sh $username;
+            ;;
+        2)
+            chsh -s /bin/bash $username;
+            ;;
+        3)
+            chsh -s /sbin/nologin $username;
+            ;;
+        *)
+            echo "There is no such shell!";
+            exit 1;
+            ;;
+    esac;
+
+    echo "Done!"
+}
+
+user_homedir(){
+    echo -n "Specify a new home directory for the user: "
+    read new_hmdir
+
+    if [[ ! -d $new_hmdir ]]; then
+        echo "There is no such direcory!";
+        echo "Create a new one!";
+        make -p $new_hmdir;
+    fi;
+
+    usermod -d $new_hmdir $username
+    echo "Done!"
+}
+
+# Make sure only root can run our script
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root";
+    exit 1;
+fi;
+
+echo -n "Enter username: "
+read username
+all_users=$(sed 's/:.*//' /etc/passwd)
+
+for each in ${all_users}; do
+    if [[ $each == $username ]]; then
+        user_checked=True;
+    fi;
+done;
+
+if [[ -z $user_checked ]]; then
+    echo "This user does not exist!";
+    exit 1;
+fi;
+
+while :
+do
+
+    echo "Enter what you want to do:"
+    echo "1. Set password expiration date"
+    echo "2. Сhange user shell"
+    echo "3. Change user homedir"
+    echo "4. Exit"
+    read action
+
+    case $action in
+        1)
+            pass_exp_day;
+            ;;
+        2)
+            user_shell;
+            ;;
+        3)
+            user_homedir;
+            ;;
+        4)
+            echo "Exit the program";
+            exit 0;
+            ;;
+        *)
+            echo "There is no such action!";
+            exit 1;
+            ;;
+    esac;
+
+done;
