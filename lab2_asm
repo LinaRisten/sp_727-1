@@ -1,0 +1,35 @@
+.data
+    format_str:
+        .string "Result = %d\n"
+    array:
+        .long 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    array_end:
+
+.text
+.globl _start
+_start:
+        movl $0, %ebx
+        movl $array, %ecx
+
+        loop:
+            cmp $array_end, %ecx
+            jge loop_end 
+
+            mov (%ecx), %edx
+            xor  $17, %edx
+            andl $17, %edx
+            cmpl $17, %edx
+
+            jne skip
+                addl (%ecx), %ebx
+            skip:
+            addl $4, %ecx
+            jmp loop
+        loop_end:
+        
+        pushl %ebx
+        pushl $format_str
+        call printf
+
+        push $0
+        call exit
