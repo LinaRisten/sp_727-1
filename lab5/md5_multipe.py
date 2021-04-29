@@ -47,4 +47,4 @@ if __name__ == "__main__":
 
     path = Path(sys.argv[1])
 
-    get_md5_for_all_files_in_directory(path, 4)
+    get_md5_for_all_files_in_directory(path, 3)
